@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AuditPro KZ — Пищевая безопасность</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0f0e;--surface:#151816;--surface2:#1c1f1d;--surface3:#242825;--border:#2a2e2b;--border2:#353a36;--text:#e8ede9;--text2:#9ba89d;--text3:#5c6b5e;--green:#4ade80;--green-dim:#166534;--green-bg:#052010;--amber:#fbbf24;--amber-dim:#92400e;--amber-bg:#1a1000;--red:#f87171;--red-dim:#991b1b;--red-bg:#1a0505;--blue:#60a5fa;--blue-bg:#051020;--accent:#4ade80;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--radius:8px;--radius-lg:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6}
+.app{display:flex;flex-direction:column;min-height:100vh}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:32px;height:32px;background:var(--green-bg);border:1px solid var(--green-dim);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-family:var(--mono);font-weight:600;font-size:15px;color:var(--text)}
+.logo-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.topbar-right{display:flex;gap:8px;align-items:center}
+.badge{font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;font-weight:600;letter-spacing:.05em}
+.badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-dim)}
+.badge-amber{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber-dim)}
+.badge-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-dim)}
+.badge-blue{background:var(--blue-bg);color:var(--blue);border:1px solid #1e3a5f}
+.badge-gray{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.screen{display:none;flex:1}
+.screen.active{display:flex;flex-direction:column;animation:fadeIn .2s ease}
+.home-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;gap:40px}
+.hero{text-align:center;max-width:560px}
+.hero h1{font-family:var(--mono);font-size:32px;font-weight:600;color:var(--text);line-height:1.2;margin-bottom:12px}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text2);font-size:15px;line-height:1.7}
+.standards-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.setup-card{width:100%;max-width:480px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px}
+.setup-card h3{font-size:13px;font-family:var(--mono);color:var(--text2);margin-bottom:20px;letter-spacing:.08em}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;color:var(--text3);font-family:var(--mono);margin-bottom:6px;letter-spacing:.06em}
+.field select,.field input{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--sans);font-size:14px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.field select:focus,.field input:focus{border-color:var(--green-dim)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235c6b5e' d='M6 8L1 3h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:var(--radius);font-family:var(--mono);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .15s;letter-spacing:.04em;text-decoration:none}
+.btn-primary{background:var(--green);color:#051a0d;width:100%;margin-top:8px}
+.btn-primary:hover{background:#6ee7a0}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--border2);color:var(--text)}
+.btn-sm{padding:7px 14px;font-size:12px;width:auto}
+.audit-layout{flex:1;display:flex;min-height:0}
+.audit-sidebar{width:280px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+.sidebar-header h4{font-family:var(--mono);font-size:12px;color:var(--text3);letter-spacing:.08em;margin-bottom:4px}
+.sidebar-header p{font-size:13px;color:var(--text);font-weight:500}
+.sidebar-header .date{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.progress-wrap{padding:16px;border-bottom:1px solid var(--border)}
+.progress-bar-bg{height:4px;background:var(--surface3);border-radius:2px;margin:8px 0}
+.progress-bar-fill{height:100%;border-radius:2px;background:var(--green);transition:width .3s}
+.progress-stats{display:flex;gap:10px;font-family:var(--mono);font-size:11px;flex-wrap:wrap}
+.stat-ok{color:var(--green)}.stat-fail{color:var(--red)}.stat-partial{color:var(--amber)}.stat-na{color:var(--text3)}
+.section-nav{flex:1;overflow-y:auto;padding:8px 0}
+.section-nav::-webkit-scrollbar{width:4px}
+.section-nav::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.nav-section{padding:8px 16px;cursor:pointer;transition:background .1s;border-left:2px solid transparent}
+.nav-section:hover{background:var(--surface2)}
+.nav-section.active{background:var(--surface2);border-left-color:var(--green)}
+.nav-section-title{font-size:13px;color:var(--text);font-weight:500}
+.nav-section-sub{font-size:11px;color:var(--text3);font-family:var(--mono)}
+.nav-bar{display:flex;gap:3px;margin-top:6px}
+.nav-bar-seg{height:3px;border-radius:1px;flex:1;background:var(--surface3)}
+.nav-bar-seg.ok{background:var(--green)}.nav-bar-seg.fail{background:var(--red)}.nav-bar-seg.partial{background:var(--amber)}
+.audit-main{flex:1;overflow-y:auto;padding:24px}
+.audit-main::-webkit-scrollbar{width:4px}
+.audit-main::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.section-block{margin-bottom:32px}
+.section-block h2{font-family:var(--mono);font-size:14px;font-weight:600;color:var(--text);padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.section-block h2 .section-num{color:var(--text3)}
+.question-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden;transition:border-color .15s}
+.question-card:hover{border-color:var(--border2)}
+.question-card.answered-ok{border-left:3px solid var(--green)}
+.question-card.answered-fail{border-left:3px solid var(--red)}
+.question-card.answered-partial{border-left:3px solid var(--amber)}
+.question-card.answered-na{border-left:3px solid var(--text3)}
+.question-header{padding:14px 16px;display:flex;align-items:flex-start;gap:12px}
+.question-meta{flex:1}
+.question-tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.question-text{font-size:14px;color:var(--text);line-height:1.5}
+.question-ref{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px}
+.tag{font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:3px;font-weight:600;letter-spacing:.04em}
+.tag-ccp{background:#1a0a20;color:#c084fc;border:1px solid #5b21b6}
+.tag-oprp{background:#0a1520;color:#38bdf8;border:1px solid #0369a1}
+.tag-prp{background:#0a150a;color:#4ade80;border:1px solid #166534}
+.tag-bio{background:#1a0505;color:#fca5a5;border:1px solid #991b1b}
+.tag-chem{background:#1a0e00;color:#fde68a;border:1px solid #92400e}
+.tag-phys{background:#050515;color:#93c5fd;border:1px solid #1e40af}
+.tag-allerg{background:#1a1000;color:#fbbf24;border:1px solid #92400e}
+.tag-pest{background:#0a1510;color:#6ee7b7;border:1px solid #065f46}
+.tag-hygiene{background:#150a20;color:#d8b4fe;border:1px solid #6d28d9}
+.answer-row{display:flex;gap:6px;padding:0 16px 14px;border-top:1px solid var(--border);padding-top:12px;align-items:center;flex-wrap:wrap}
+.ans-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:var(--mono);font-size:12px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text2);transition:all .12s}
+.ans-btn:hover{border-color:var(--border2)}
+.ans-btn.selected-ok{background:var(--green-bg);color:var(--green);border-color:var(--green-dim)}
+.ans-btn.selected-fail{background:var(--red-bg);color:var(--red);border-color:var(--red-dim)}
+.ans-btn.selected-partial{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-dim)}
+.ans-btn.selected-na{background:var(--surface3);color:var(--text3);border-color:var(--border2)}
+.corrective-wrap{padding:0 16px 14px;display:none}
+.corrective-wrap.visible{display:block;animation:fadeIn .2s ease}
+.corrective-label{font-size:11px;font-family:var(--mono);color:var(--red);margin-bottom:6px;letter-spacing:.06em}
+.corrective-input{width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--red-dim);border-radius:var(--radius);color:var(--text);font-family:var(--sans);font-size:13px;resize:vertical;min-height:60px;outline:none;line-height:1.5}
+.corrective-input:focus{border-color:var(--red)}
+.crit-limit-wrap{padding:8px 16px 12px;background:rgba(251,191,36,.04);border-top:1px solid rgba(251,191,36,.15)}
+.crit-limit-label{font-size:11px;font-family:var(--mono);color:var(--amber);margin-bottom:4px;letter-spacing:.06em}
+.crit-limit-text{font-size:13px;color:var(--text2);line-height:1.5;font-family:var(--mono)}
+.notes-wrap{padding:0 16px 14px}
+.notes-label{font-size:11px;font-family:var(--mono);color:var(--text3);margin-bottom:6px;letter-spacing:.06em}
+.notes-input{width:100%;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--sans);font-size:13px;resize:none;height:52px;outline:none;line-height:1.5}
+.notes-input:focus{border-color:var(--border2)}
+.audit-footer{padding:16px 24px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;background:var(--surface)}
+.footer-info{font-family:var(--mono);font-size:12px;color:var(--text3)}
+.report-content{flex:1;overflow-y:auto;padding:32px 24px;max-width:900px;margin:0 auto;width:100%}
+.report-header{margin-bottom:28px}
+.report-header h2{font-family:var(--mono);font-size:20px;font-weight:600;margin-bottom:4px}
+.report-header p{color:var(--text2);font-size:13px}
+.report-meta-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:28px}
+.meta-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.meta-card-label{font-size:11px;font-family:var(--mono);color:var(--text3);letter-spacing:.06em;margin-bottom:4px}
+.meta-card-value{font-size:15px;font-weight:600;color:var(--text)}
+.meta-card-value.big{font-size:24px;font-family:var(--mono)}
+.score-circle-wrap{text-align:center;padding:8px}
+.score-circle{display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;font-family:var(--mono);font-size:22px;font-weight:600;border:3px solid}
+.score-circle.high{border-color:var(--green);color:var(--green);background:var(--green-bg)}
+.score-circle.mid{border-color:var(--amber);color:var(--amber);background:var(--amber-bg)}
+.score-circle.low{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.report-section{margin-bottom:28px}
+.report-section h3{font-family:var(--mono);font-size:13px;color:var(--text3);letter-spacing:.08em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--border)}
+.findings-list{display:flex;flex-direction:column;gap:8px}
+.finding-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;display:flex;gap:12px;align-items:flex-start}
+.finding-item.critical{border-left:3px solid var(--red)}
+.finding-item.major{border-left:3px solid var(--amber)}
+.finding-item.minor{border-left:3px solid var(--blue)}
+.finding-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.finding-dot.critical{background:var(--red)}.finding-dot.major{background:var(--amber)}.finding-dot.minor{background:var(--blue)}
+.finding-text{font-size:13px;color:var(--text);line-height:1.5;flex:1}
+.finding-ca{font-size:12px;color:var(--text3);margin-top:4px;font-style:italic}
+.ai-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;position:relative;overflow:hidden}
+.ai-box::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--green),#38bdf8,#c084fc)}
+.ai-box-label{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;color:var(--text3);letter-spacing:.08em;margin-bottom:14px}
+.ai-pulse{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.ai-text{font-size:14px;color:var(--text2);line-height:1.8;white-space:pre-wrap}
+.ai-loading{color:var(--text3);font-family:var(--mono);font-size:13px}
+.ai-cursor{display:inline-block;width:8px;height:14px;background:var(--green);animation:blink .8s step-end infinite;margin-left:2px;vertical-align:middle}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.disclaimer{background:var(--amber-bg);border:1px solid var(--amber-dim);border-radius:var(--radius);padding:12px 14px;font-size:12px;color:var(--amber);font-family:var(--mono);line-height:1.6}
+.report-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+.history-content{flex:1;padding:24px}
+.history-content h2{font-family:var(--mono);font-size:18px;margin-bottom:20px}
+.history-empty{text-align:center;padding:60px 20px;color:var(--text3);font-size:14px}
+.history-grid{display:flex;flex-direction:column;gap:10px}
+.history-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;transition:border-color .15s}
+.history-card:hover{border-color:var(--border2)}
+.history-card-left h4{font-size:14px;font-weight:500}
+.history-card-left p{font-size:12px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.history-card-right{display:flex;align-items:center;gap:12px}
+.cat-legend{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;padding:12px 16px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)}
+.cat-legend-title{font-family:var(--mono);font-size:11px;color:var(--text3);width:100%;margin-bottom:4px;letter-spacing:.06em}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+.nav-tabs{display:flex;gap:2px;padding:12px 24px;border-bottom:1px solid var(--border);background:var(--surface)}
+.nav-tab{padding:7px 16px;border-radius:var(--radius);font-family:var(--mono);font-size:12px;font-weight:600;cursor:pointer;color:var(--text3);transition:all .15s;border:1px solid transparent;letter-spacing:.04em}
+.nav-tab:hover{color:var(--text2)}
+.nav-tab.active{background:var(--surface2);color:var(--text);border-color:var(--border)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-family:var(--mono);font-size:13px;color:var(--text);z-index:1000;display:none;animation:fadeIn .2s ease}
+.toast.show{display:block}
+option{background:var(--surface2)}
+@media(max-width:680px){.audit-sidebar{display:none}.report-meta-grid{grid-template-columns:1fr 1fr}.topbar{padding:10px 16px}}
+@media print{.topbar,.audit-sidebar,.audit-footer,.report-actions,.nav-tabs{display:none!important}body{background:#fff;color:#000}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="topbar">
+  <div class="logo">
+    <div class="logo-icon">🛡️</div>
+    <div>
+      <div class="logo-text">AuditPro KZ</div>
+      <div class="logo-sub">v2.0 · ISO 22000:2018 · HACCP · СанПиН РК</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="badge badge-green">ISO 22000:2018</span>
+    <span class="badge badge-blue">HACCP 7 принципов</span>
+    <span class="badge badge-amber" id="topbar-status" style="display:none">Аудит активен</span>
+  </div>
+</div>
+
+<div class="nav-tabs">
+  <div class="nav-tab active" onclick="showTab('home')">Новый аудит</div>
+  <div class="nav-tab" id="tab-audit" onclick="showTab('audit')" style="display:none">Чек-лист</div>
+  <div class="nav-tab" id="tab-report" onclick="showTab('report')" style="display:none">Заключение</div>
+  <div class="nav-tab" onclick="showTab('history')">История</div>
+</div>
+
+<!-- HOME -->
+<div class="screen active" id="screen-home">
+  <div class="home-content">
+    <div class="hero">
+      <h1>Аудит пищевой<br><span>безопасности</span></h1>
+      <p>Профессиональный чек-лист по HACCP 7 принципов и ISO 22000:2018 с разграничением ККТ/ОПРП/ПРП, критическими пределами, корректирующими действиями и ИИ-заключением.</p>
+      <div class="standards-row">
+        <span class="badge badge-gray">ПРП — Базовые программы</span>
+        <span class="badge badge-blue">ОПРП — Оперативные ПРП</span>
+        <span class="badge" style="background:#1a0a20;color:#c084fc;border:1px solid #5b21b6">ККТ — Критические точки</span>
+      </div>
+    </div>
+    <div class="setup-card">
+      <h3>НАСТРОЙКА АУДИТА</h3>
+      <div class="field">
+        <label>ТИП ОБЪЕКТА</label>
+        <select id="obj-type">
+          <option value="">Выберите тип объекта...</option>
+          <option value="restaurant">🍽️ Ресторан / Кафе / Столовая</option>
+          <option value="production">🏭 Пищевое производство</option>
+          <option value="storage">📦 Склад / Холодильник</option>
+          <option value="retail">🛒 Продуктовый магазин / Супермаркет</option>
+          <option value="bakery">🥐 Хлебопекарня / Кондитерская</option>
+          <option value="catering">🚚 Кейтеринг / Доставка еды</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>НАЗВАНИЕ ОБЪЕКТА</label>
+        <input type="text" id="obj-name" placeholder="Например: ТОО «Алтын Дастархан»">
+      </div>
+      <div class="field">
+        <label>АУДИТОР</label>
+        <input type="text" id="auditor-name" placeholder="ФИО аудитора">
+      </div>
+      <div class="field">
+        <label>ДАТА АУДИТА</label>
+        <input type="date" id="audit-date">
+      </div>
+      <button class="btn btn-primary" onclick="startAudit()">НАЧАТЬ АУДИТ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUDIT -->
+<div class="screen" id="screen-audit">
+  <div class="audit-layout">
+    <div class="audit-sidebar">
+      <div class="sidebar-header">
+        <h4>ОБЪЕКТ</h4>
+        <p id="sb-name">—</p>
+        <div class="date" id="sb-date">—</div>
+      </div>
+      <div class="progress-wrap">
+        <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;color:var(--text3)">
+          <span>ПРОГРЕСС</span><span id="sb-pct">0%</span>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="sb-bar" style="width:0%"></div></div>
+        <div class="progress-stats">
+          <span class="stat-ok" id="sb-ok">0 ✓</span>
+          <span class="stat-fail" id="sb-fail">0 ✗</span>
+          <span class="stat-partial" id="sb-partial">0 ~</span>
+          <span class="stat-na" id="sb-na">0 н/п</span>
+        </div>
+      </div>
+      <div class="section-nav" id="section-nav"></div>
+    </div>
+    <div class="audit-main" id="audit-main"></div>
+  </div>
+  <div class="audit-footer">
+    <div class="footer-info" id="footer-info">Ответьте на вопросы</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-secondary btn-sm" onclick="showTab('home')">← Назад</button>
+      <button class="btn btn-primary btn-sm" onclick="generateReport()">СФОРМИРОВАТЬ ЗАКЛЮЧЕНИЕ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- REPORT -->
+<div class="screen" id="screen-report">
+  <div class="report-content">
+    <div class="report-header">
+      <h2 id="rpt-title">Заключение аудита</h2>
+      <p id="rpt-subtitle">—</p>
+    </div>
+    <div class="report-meta-grid">
+      <div class="meta-card"><div class="meta-card-label">ОБЪЕКТ</div><div class="meta-card-value" id="rpt-obj">—</div></div>
+      <div class="meta-card"><div class="meta-card-label">ТИП</div><div class="meta-card-value" id="rpt-type">—</div></div>
+      <div class="meta-card"><div class="meta-card-label">АУДИТОР</div><div class="meta-card-value" id="rpt-auditor">—</div></div>
+      <div class="meta-card"><div class="meta-card-label">ДАТА</div><div class="meta-card-value" id="rpt-date">—</div></div>
+      <div class="meta-card score-circle-wrap">
+        <div class="meta-card-label" style="margin-bottom:8px">ОБЩИЙ БАЛЛ</div>
+        <div class="score-circle" id="rpt-score-circle">—</div>
+      </div>
+      <div class="meta-card"><div class="meta-card-label">НЕСООТВЕТСТВИЙ</div><div class="meta-card-value big" id="rpt-fails" style="color:var(--red)">0</div></div>
+      <div class="meta-card"><div class="meta-card-label">ЧАСТИЧНЫХ</div><div class="meta-card-value big" id="rpt-partials" style="color:var(--amber)">0</div></div>
+      <div class="meta-card"><div class="meta-card-label">СООТВЕТСТВИЙ</div><div class="meta-card-value big" id="rpt-oks" style="color:var(--green)">0</div></div>
+    </div>
+    <div class="report-section">
+      <h3>ВЕРДИКТ</h3>
+      <div class="ai-box" style="padding:16px 20px"><div class="ai-text" id="rpt-verdict-text">—</div></div>
+    </div>
+    <div class="report-section" id="rpt-crit-section">
+      <h3>КРИТИЧЕСКИЕ НЕСООТВЕТСТВИЯ (ККТ)</h3>
+      <div class="findings-list" id="rpt-crit-list"></div>
+    </div>
+    <div class="report-section" id="rpt-major-section">
+      <h3>ЗНАЧИТЕЛЬНЫЕ НЕСООТВЕТСТВИЯ (ОПРП / ПРП)</h3>
+      <div class="findings-list" id="rpt-major-list"></div>
+    </div>
+    <div class="report-section">
+      <h3>ИИ-АНАЛИЗ РЕЗУЛЬТАТОВ</h3>
+      <div class="ai-box">
+        <div class="ai-box-label"><div class="ai-pulse"></div>АНАЛИЗ CLAUDE AI · ISO 22000:2018 · HACCP</div>
+        <div class="ai-text" id="ai-text"><span class="ai-loading">Генерация заключения...<span class="ai-cursor"></span></span></div>
+      </div>
+    </div>
+    <div class="disclaimer">⚠ ВАЖНО: Данное заключение носит информационный характер. Оно не заменяет официальный отчёт, подписанный сертифицированным специалистом по пищевой безопасности. Для целей сертификации по ISO 22000:2018 необходимо заключение аккредитованного органа по сертификации.</div>
+    <div class="report-actions">
+      <button class="btn btn-primary btn-sm" onclick="window.print()">🖨 Печать / PDF</button>
+      <button class="btn btn-secondary btn-sm" onclick="exportJSON()">📥 Экспорт JSON</button>
+      <button class="btn btn-secondary btn-sm" onclick="showTab('audit')">← Редактировать</button>
+      <button class="btn btn-secondary btn-sm" onclick="newAudit()">Новый аудит</button>
+    </div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="screen" id="screen-history">
+  <div class="history-content">
+    <h2>История аудитов</h2>
+    <div id="history-list"></div>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const CHECKLIST=[
+  {id:'prp',title:'ПРП — Базовые программы (ISO 22000:2018 §8.2)',questions:[
+    {id:'p1',text:'Здание обеспечивает надлежащее разделение потоков сырья и готовой продукции (поточность производства)?',tags:['prp','phys'],ref:'ISO 22000:2018 §8.2.4 a)',critLimit:null},
+    {id:'p2',text:'Поверхности, контактирующие с пищевой продукцией, изготовлены из пищевых материалов, легко поддаются очистке и дезинфекции?',tags:['prp','chem','bio'],ref:'ISO 22000:2018 §8.2.4 b)',critLimit:null},
+    {id:'p3',text:'Имеется актуальная программа санитарной обработки помещений и оборудования с фиксацией выполнения?',tags:['prp','bio'],ref:'ISO 22000:2018 §8.2.4 h) · ТР ТС 021/2011',critLimit:null},
+    {id:'p4',text:'Моющие и дезинфицирующие средства одобрены для пищевых предприятий, хранятся отдельно от продуктов питания?',tags:['prp','chem'],ref:'ISO 22000:2018 §8.2.4 h)',critLimit:null},
+    {id:'p5',text:'Персонал проходит регулярный медосмотр, имеет актуальные медицинские книжки?',tags:['prp','bio'],ref:'СанПиН РК · ТР ТС 021/2011 ст.10',critLimit:null},
+    {id:'p6',text:'Персонал обучен правилам личной гигиены: мытьё рук, спецодежда, запрет украшений в зоне производства?',tags:['prp','bio','hygiene'],ref:'ISO 22000:2018 §8.2.4 f)',critLimit:null},
+    {id:'p7',text:'Вода, используемая в производстве, соответствует требованиям к питьевой воде; имеются результаты анализов?',tags:['prp','chem','bio'],ref:'ISO 22000:2018 §8.2.4 c) · СанПиН РК',critLimit:null},
+    {id:'p8',text:'Обращение с отходами исключает загрязнение продукции: маркированные контейнеры, регулярный вывоз?',tags:['prp','bio','phys'],ref:'ISO 22000:2018 §8.2.4 g)',critLimit:null},
+  ]},
+  {id:'pest',title:'Пест-контроль (ISO 22000:2018 §8.2.4 i)',questions:[
+    {id:'pc1',text:'Разработана и документирована программа контроля вредителей с назначенным ответственным лицом?',tags:['prp','pest'],ref:'ISO 22000:2018 §8.2.4 i)',critLimit:null},
+    {id:'pc2',text:'Имеются актуальные карты расположения приманочных станций и ловушек по объекту?',tags:['prp','pest'],ref:'ISO 22000:2018 §8.2.4 i)',critLimit:null},
+    {id:'pc3',text:'Записи инспекций пест-контроля ведутся регулярно (не реже 1 раза в месяц)?',tags:['prp','pest'],ref:'ISO 22000:2018 §8.2.4 i)',critLimit:null},
+    {id:'pc4',text:'Пестициды зарегистрированы для применения на пищевых предприятиях, используются сертифицированными исполнителями?',tags:['prp','pest','chem'],ref:'СанПиН РК · ТР ТС 021/2011',critLimit:null},
+    {id:'pc5',text:'Здание не имеет трещин, щелей, незакрытых отверстий — возможных путей проникновения вредителей?',tags:['prp','pest','phys'],ref:'ISO 22000:2018 §8.2.4 a)',critLimit:null},
+  ]},
+  {id:'haccp_analysis',title:'HACCP — Анализ опасностей (Принцип 1–2)',questions:[
+    {id:'h1',text:'Разработана и актуализирована блок-схема технологического процесса с описанием всех этапов и продукции?',tags:['oprp','bio','chem','phys'],ref:'HACCP Пр.1 · ISO 22000:2018 §8.5.1',critLimit:null},
+    {id:'h2',text:'Проведён анализ биологических опасностей (Salmonella, Listeria, E.coli, Staphylococcus и др.) по каждому этапу?',tags:['oprp','bio'],ref:'HACCP Пр.1 · ISO 22000:2018 §8.5.2.1',critLimit:null},
+    {id:'h3',text:'Проведён анализ химических опасностей (остатки пестицидов, моющих средств, нитраты, тяжёлые металлы)?',tags:['oprp','chem'],ref:'HACCP Пр.1 · ISO 22000:2018 §8.5.2.1',critLimit:null},
+    {id:'h4',text:'Проведён анализ физических опасностей (стекло, металл, кости, пластик, дерево)?',tags:['oprp','phys'],ref:'HACCP Пр.1 · ISO 22000:2018 §8.5.2.1',critLimit:null},
+    {id:'h5',text:'Аллергены идентифицированы по всей цепочке (сырьё, ингредиенты, перекрёстное загрязнение); имеется матрица аллергенов?',tags:['oprp','allerg'],ref:'HACCP Пр.1 · ТР ТС 022/2011',critLimit:null},
+    {id:'h6',text:'Для каждой выявленной опасности определён уровень риска (вероятность × тяжесть) и принято решение о методе управления?',tags:['oprp','bio','chem','phys'],ref:'HACCP Пр.2 · ISO 22000:2018 §8.5.2.2',critLimit:null},
+  ]},
+  {id:'ccp',title:'ККТ — Критические контрольные точки (Принципы 2–4)',questions:[
+    {id:'c1',text:'Термообработка: температура в центре продукта достигает критического предела и выдерживается требуемое время?',tags:['ccp','bio'],ref:'HACCP Пр.2–3 · СанПиН РК',critLimit:'Говядина/свинина: ≥72°C × 15 сек | Птица: ≥85°C × 15 сек | Рыба: ≥70°C × 15 сек'},
+    {id:'c2',text:'Приборы контроля температуры (термощупы, логгеры) прошли метрологическую поверку; свидетельства актуальны?',tags:['ccp','bio'],ref:'HACCP Пр.4 · ISO 22000:2018 §8.7',critLimit:'Погрешность измерения ≤ ±1°C'},
+    {id:'c3',text:'Охлаждение готовой продукции: переход с +60°C до +8°C происходит не более чем за 2 часа; с +60°C до +4°C — за 4 часа?',tags:['ccp','bio'],ref:'HACCP Пр.3 · СанПиН РК · ТР ТС 021/2011',critLimit:'+60°C → +4°C за ≤ 4 часа | +60°C → +8°C за ≤ 2 часа'},
+    {id:'c4',text:'Хранение охлаждённой готовой продукции: температура +2...+4°C, фиксируется в журнале минимум 2 раза в сутки?',tags:['ccp','bio'],ref:'HACCP Пр.3–4 · ТР ТС 021/2011',critLimit:'+2°C … +4°C (хранение готовых блюд — не выше +6°C)'},
+    {id:'c5',text:'Хранение замороженной продукции: температура ≤−18°C, непрерывный мониторинг с фиксацией в журнале?',tags:['ccp','bio'],ref:'HACCP Пр.3–4 · ГОСТ 32779',critLimit:'≤ −18°C (мороженое: ≤ −20°C)'},
+    {id:'c6',text:'При использовании металлодетектора / просева: частота проверки контрольными образцами задокументирована, записи ведутся?',tags:['ccp','phys'],ref:'HACCP Пр.4 · ISO 22000:2018 §8.7',critLimit:'Fe ≥ 2.0 мм | нFe ≥ 3.0 мм | нержавеющая сталь ≥ 3.0 мм'},
+  ]},
+  {id:'monitoring',title:'Мониторинг и корректирующие действия (Принцип 4–5)',questions:[
+    {id:'m1',text:'Для каждой ККТ определён метод мониторинга, частота и ответственное лицо — всё зафиксировано в плане HACCP?',tags:['ccp','oprp'],ref:'HACCP Пр.4 · ISO 22000:2018 §8.5.4',critLimit:null},
+    {id:'m2',text:'Журналы мониторинга заполняются своевременно, без исправлений «задним числом»; каждая запись подписана исполнителем?',tags:['ccp','oprp'],ref:'HACCP Пр.4 · ISO 22000:2018 §7.5',critLimit:null},
+    {id:'m3',text:'При отклонении от критического предела ККТ корректирующее действие применяется немедленно и фиксируется в журнале?',tags:['ccp'],ref:'HACCP Пр.5 · ISO 22000:2018 §8.9.2',critLimit:null},
+    {id:'m4',text:'Продукция, произведённая в период отклонения ККТ, изолируется на карантин и оценивается перед решением о выпуске?',tags:['ccp'],ref:'HACCP Пр.5 · ISO 22000:2018 §8.9.4',critLimit:null},
+    {id:'m5',text:'Записи мониторинга хранятся не менее срока годности продукта плюс 1 год (минимум 2 года)?',tags:['ccp','oprp'],ref:'ISO 22000:2018 §7.5.3 · ТР ТС 021/2011',critLimit:null},
+  ]},
+  {id:'verification',title:'Верификация системы HACCP (Принцип 6)',questions:[
+    {id:'v1',text:'Внутренние аудиты системы HACCP проводятся по плану (не реже 1 раза в год); имеются отчёты с корректирующими действиями?',tags:['oprp'],ref:'HACCP Пр.6 · ISO 22000:2018 §9.2',critLimit:null},
+    {id:'v2',text:'Микробиологические анализы готовой продукции / смывов проводятся по утверждённому графику; результаты хранятся?',tags:['ccp','bio'],ref:'HACCP Пр.6 · СанПиН РК',critLimit:null},
+    {id:'v3',text:'При изменении процесса, сырья или продукта план HACCP пересматривается, валидируется и переутверждается?',tags:['oprp'],ref:'ISO 22000:2018 §8.5.3',critLimit:null},
+    {id:'v4',text:'Калибровка / поверка средств измерений (термометры, pH-метры, весы) проводится по утверждённому графику?',tags:['ccp','oprp'],ref:'ISO 22000:2018 §8.7',critLimit:null},
+  ]},
+  {id:'traceability',title:'Прослеживаемость и управление несоответствиями',questions:[
+    {id:'t1',text:'Система прослеживаемости позволяет по партии/дате идентифицировать поставщика любого сырья в течение 4 часов?',tags:['oprp'],ref:'ISO 22000:2018 §8.3 · ТР ТС 021/2011',critLimit:null},
+    {id:'t2',text:'Процедура отзыва/изъятия продукции разработана и тестируется не реже 1 раза в год (учения)?',tags:['oprp'],ref:'ISO 22000:2018 §8.9.5',critLimit:null},
+    {id:'t3',text:'Входящее сырьё проверяется при поступлении (температура, органолептика, документы); отклонения фиксируются и блокируются?',tags:['prp','bio','chem'],ref:'ISO 22000:2018 §8.5.1.3',critLimit:null},
+  ]},
+  {id:'management',title:'Система менеджмента (ISO 22000:2018)',questions:[
+    {id:'mg1',text:'Политика в области пищевой безопасности задокументирована, доведена до персонала, подписана высшим руководством?',tags:['prp'],ref:'ISO 22000:2018 §5.2',critLimit:null},
+    {id:'mg2',text:'Назначен руководитель группы пищевой безопасности (RGPB / food safety team leader) с формальным приказом?',tags:['prp'],ref:'ISO 22000:2018 §5.3',critLimit:null},
+    {id:'mg3',text:'Весь персонал, влияющий на пищевую безопасность, прошёл обучение; записи об обучении актуальны (не старше 1 года)?',tags:['prp'],ref:'ISO 22000:2018 §7.2–7.3',critLimit:null},
+    {id:'mg4',text:'Анализ со стороны руководства проводится не реже 1 раза в год с рассмотрением результатов аудитов и мониторинга?',tags:['prp'],ref:'ISO 22000:2018 §9.3',critLimit:null},
+  ]}
+];
+
+const TYPENAMES={restaurant:'Ресторан / Кафе',production:'Пищевое производство',storage:'Склад / Холодильник',retail:'Продуктовый магазин',bakery:'Хлебопекарня / Кондитерская',catering:'Кейтеринг / Доставка'};
+const TAGMAP={ccp:'ККТ',oprp:'ОПРП',prp:'ПРП',bio:'БИО',chem:'ХИМ',phys:'ФИЗ',allerg:'АЛЛЕРГ',pest:'ПЕСТ',hygiene:'ГИГИЕНА'};
+const TAGCLS={ccp:'tag-ccp',oprp:'tag-oprp',prp:'tag-prp',bio:'tag-bio',chem:'tag-chem',phys:'tag-phys',allerg:'tag-allerg',pest:'tag-pest',hygiene:'tag-hygiene'};
+
+let S={objType:'',objName:'',auditor:'',date:'',answers:{},notes:{},corrective:{},history:JSON.parse(localStorage.getItem('auditpro_h')||'[]')};
+
+function showTab(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t=>{
+    const tx=t.textContent.trim();
+    if((n==='home'&&tx.includes('Новый'))||(n==='audit'&&tx.includes('Чек'))||(n==='report'&&tx.includes('Заключение'))||(n==='history'&&tx.includes('История')))t.classList.add('active');
+  });
+  if(n==='history')renderHistory();
+}
+
+function toast(msg){const e=document.getElementById('toast');e.textContent=msg;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500)}
+
+function startAudit(){
+  const t=document.getElementById('obj-type').value;
+  const n=document.getElementById('obj-name').value.trim();
+  const a=document.getElementById('auditor-name').value.trim();
+  const d=document.getElementById('audit-date').value;
+  if(!t){toast('⚠ Выберите тип объекта');return}
+  if(!n){toast('⚠ Введите название объекта');return}
+  if(!d){toast('⚠ Укажите дату аудита');return}
+  S.objType=t;S.objName=n;S.auditor=a||'Не указан';S.date=d;
+  S.answers={};S.notes={};S.corrective={};
+  document.getElementById('tab-audit').style.display='';
+  document.getElementById('tab-report').style.display='';
+  document.getElementById('topbar-status').style.display='';
+  renderAudit();showTab('audit');
+}
+
+function mkTag(t){return`<span class="tag ${TAGCLS[t]||''}">${TAGMAP[t]||t}</span>`}
+
+function renderAudit(){
+  document.getElementById('sb-name').textContent=S.objName;
+  document.getElementById('sb-date').textContent=S.date+' · '+(TYPENAMES[S.objType]||'');
+  const nav=document.getElementById('section-nav');nav.innerHTML='';
+  CHECKLIST.forEach((sec,i)=>{
+    const d=document.createElement('div');
+    d.className='nav-section'+(i===0?' active':'');d.id='nav-sec-'+i;
+    const ans=sec.questions.filter(q=>S.answers[q.id]).length;
+    const bars=sec.questions.map(q=>{const a=S.answers[q.id];return`<div class="nav-bar-seg ${a==='ok'?'ok':a==='fail'?'fail':a==='partial'?'partial':''}"></div>`}).join('');
+    d.innerHTML=`<div class="nav-section-title">${sec.title.split('(')[0].trim()}</div><div class="nav-section-sub">${ans}/${sec.questions.length} ответов</div><div class="nav-bar">${bars}</div>`;
+    d.onclick=()=>{document.getElementById('audit-sec-'+i)?.scrollIntoView({behavior:'smooth',block:'start'});document.querySelectorAll('.nav-section').forEach(n=>n.classList.remove('active'));d.classList.add('active')};
+    nav.appendChild(d);
+  });
+  const main=document.getElementById('audit-main');main.innerHTML='';
+  const leg=document.createElement('div');leg.className='cat-legend';
+  leg.innerHTML=`<div class="cat-legend-title">КАТЕГОРИИ КОНТРОЛЬНЫХ ТОЧЕК:</div>
+    <span class="tag tag-ccp">ККТ</span><span style="font-size:12px;color:var(--text2);margin-right:12px"> Критическая контрольная точка</span>
+    <span class="tag tag-oprp">ОПРП</span><span style="font-size:12px;color:var(--text2);margin-right:12px"> Оперативная программа</span>
+    <span class="tag tag-prp">ПРП</span><span style="font-size:12px;color:var(--text2)"> Базовая программа</span>
+    <div class="cat-legend-title" style="margin-top:8px">ТИПЫ ОПАСНОСТЕЙ:</div>
+    <span class="tag tag-bio">БИО</span><span class="tag tag-chem" style="margin-left:4px">ХИМ</span><span class="tag tag-phys" style="margin-left:4px">ФИЗ</span><span class="tag tag-allerg" style="margin-left:4px">АЛЛЕРГ</span><span class="tag tag-pest" style="margin-left:4px">ПЕСТ</span>`;
+  main.appendChild(leg);
+  CHECKLIST.forEach((sec,i)=>{
+    const block=document.createElement('div');block.className='section-block';block.id='audit-sec-'+i;
+    block.innerHTML=`<h2><span class="section-num">${String(i+1).padStart(2,'0')}</span> ${sec.title}</h2>`;
+    sec.questions.forEach(q=>{
+      const card=document.createElement('div');
+      card.className='question-card'+(S.answers[q.id]?' answered-'+S.answers[q.id]:'');card.id='qcard-'+q.id;
+      const tags=q.tags.map(mkTag).join('');
+      const cur=S.answers[q.id]||'';
+      const cl=document.createElement('div');cl.className='crit-limit-wrap';cl.style.display=q.critLimit?'':'none';
+      if(q.critLimit)cl.innerHTML=`<div class="crit-limit-label">⚠ КРИТИЧЕСКИЙ ПРЕДЕЛ</div><div class="crit-limit-text">${q.critLimit}</div>`;
+      card.innerHTML=`
+        <div class="question-header"><div class="question-meta">
+          <div class="question-tags">${tags}</div>
+          <div class="question-text">${q.text}</div>
+          <div class="question-ref">${q.ref}</div>
+        </div></div>
+        ${q.critLimit?`<div class="crit-limit-wrap"><div class="crit-limit-label">⚠ КРИТИЧЕСКИЙ ПРЕДЕЛ</div><div class="crit-limit-text">${q.critLimit}</div></div>`:''}
+        <div class="answer-row">
+          <button class="ans-btn ${cur==='ok'?'selected-ok':''}" onclick="setAns('${q.id}','ok')">✓ Соответствует</button>
+          <button class="ans-btn ${cur==='fail'?'selected-fail':''}" onclick="setAns('${q.id}','fail')">✗ Не соответствует</button>
+          <button class="ans-btn ${cur==='partial'?'selected-partial':''}" onclick="setAns('${q.id}','partial')">~ Частично</button>
+          <button class="ans-btn ${cur==='na'?'selected-na':''}" onclick="setAns('${q.id}','na')">Н/П</button>
+        </div>
+        <div class="corrective-wrap ${cur==='fail'||cur==='partial'?'visible':''}" id="ca-${q.id}">
+          <div class="corrective-label">▸ КОРРЕКТИРУЮЩЕЕ ДЕЙСТВИЕ — обязательно при несоответствии (ISO 22000 §8.9.2)</div>
+          <textarea class="corrective-input" placeholder="Опишите корректирующее действие, срок устранения и ответственного..." onchange="S.corrective['${q.id}']=this.value">${S.corrective[q.id]||''}</textarea>
+        </div>
+        <div class="notes-wrap">
+          <div class="notes-label">НАБЛЮДЕНИЕ / ПРИМЕЧАНИЕ</div>
+          <textarea class="notes-input" placeholder="Дополнительные наблюдения, фото, ссылки..." onchange="S.notes['${q.id}']=this.value">${S.notes[q.id]||''}</textarea>
+        </div>`;
+      block.appendChild(card);
+    });
+    main.appendChild(block);
+  });
+  updateProg();
+}
+
+function setAns(qid,val){
+  S.answers[qid]=val;
+  const card=document.getElementById('qcard-'+qid);
+  card.className='question-card answered-'+val;
+  card.querySelectorAll('.ans-btn').forEach(b=>{
+    b.className='ans-btn';
+    if((b.textContent.includes('Соответствует')&&!b.textContent.includes('Не')&&val==='ok')||
+       (b.textContent.includes('Не соответствует')&&val==='fail')||
+       (b.textContent.includes('Частично')&&val==='partial')||
+       (b.textContent.includes('Н/П')&&val==='na'))b.classList.add('selected-'+val);
+  });
+  const ca=document.getElementById('ca-'+qid);
+  if(ca)ca.classList.toggle('visible',val==='fail'||val==='partial');
+  updateProg();
+}
+
+function updateProg(){
+  const allQ=CHECKLIST.flatMap(s=>s.questions);
+  const total=allQ.length;
+  const answered=allQ.filter(q=>S.answers[q.id]).length;
+  const ok=allQ.filter(q=>S.answers[q.id]==='ok').length;
+  const fail=allQ.filter(q=>S.answers[q.id]==='fail').length;
+  const partial=allQ.filter(q=>S.answers[q.id]==='partial').length;
+  const na=allQ.filter(q=>S.answers[q.id]==='na').length;
+  const pct=total?Math.round(answered/total*100):0;
+  document.getElementById('sb-pct').textContent=pct+'%';
+  document.getElementById('sb-bar').style.width=pct+'%';
+  document.getElementById('sb-ok').textContent=ok+' ✓';
+  document.getElementById('sb-fail').textContent=fail+' ✗';
+  document.getElementById('sb-partial').textContent=partial+' ~';
+  document.getElementById('sb-na').textContent=na+' н/п';
+  document.getElementById('footer-info').textContent=`${answered}/${total} вопросов · ${total-answered} без ответа`;
+  CHECKLIST.forEach((sec,i)=>{
+    const navEl=document.getElementById('nav-sec-'+i);if(!navEl)return;
+    const a=sec.questions.filter(q=>S.answers[q.id]).length;
+    navEl.querySelector('.nav-section-sub').textContent=`${a}/${sec.questions.length} ответов`;
+    const bars=sec.questions.map(q=>{const a=S.answers[q.id];return`<div class="nav-bar-seg ${a==='ok'?'ok':a==='fail'?'fail':a==='partial'?'partial':''}"></div>`}).join('');
+    const nb=navEl.querySelector('.nav-bar');if(nb)nb.innerHTML=bars;
+  });
+}
+
+async function generateReport(){
+  const allQ=CHECKLIST.flatMap(s=>s.questions);
+  const total=allQ.length;
+  const answered=allQ.filter(q=>S.answers[q.id]).length;
+  if(answered<Math.ceil(total*0.5)){toast('⚠ Ответьте хотя бы на 50% вопросов');return}
+  const ok=allQ.filter(q=>S.answers[q.id]==='ok').length;
+  const fail=allQ.filter(q=>S.answers[q.id]==='fail').length;
+  const partial=allQ.filter(q=>S.answers[q.id]==='partial').length;
+  const na=allQ.filter(q=>S.answers[q.id]==='na').length;
+  const scored=answered-na;
+  const score=scored>0?Math.round((ok+partial*0.5)/scored*100):0;
+  document.getElementById('rpt-title').textContent='Заключение аудита — '+S.objName;
+  document.getElementById('rpt-subtitle').textContent='Сформировано: '+new Date().toLocaleString('ru-RU');
+  document.getElementById('rpt-obj').textContent=S.objName;
+  document.getElementById('rpt-type').textContent=TYPENAMES[S.objType]||S.objType;
+  document.getElementById('rpt-auditor').textContent=S.auditor;
+  document.getElementById('rpt-date').textContent=S.date;
+  document.getElementById('rpt-fails').textContent=fail;
+  document.getElementById('rpt-partials').textContent=partial;
+  document.getElementById('rpt-oks').textContent=ok;
+  const sc=document.getElementById('rpt-score-circle');
+  sc.textContent=score+'%';sc.className='score-circle '+(score>=80?'high':score>=60?'mid':'low');
+  let vt='';
+  if(score>=80&&fail===0)vt='✅ СООТВЕТСТВУЕТ — Высокий уровень соответствия требованиям ISO 22000:2018 и HACCP. Рекомендуется поддержание системы и плановая верификация.';
+  else if(score>=60)vt='⚠ УСЛОВНОЕ СООТВЕТСТВИЕ — Выявлены несоответствия, требующие устранения. Повторная проверка рекомендована через 30–60 дней.';
+  else vt='🚫 НЕ СООТВЕТСТВУЕТ — Критические нарушения. Необходимо немедленное принятие корректирующих действий. Повторный аудит обязателен.';
+  document.getElementById('rpt-verdict-text').textContent=vt;
+  const critL=document.getElementById('rpt-crit-list');const majL=document.getElementById('rpt-major-list');
+  critL.innerHTML='';majL.innerHTML='';
+  let hasCrit=false,hasMaj=false;
+  const failItems=[],partialItems=[];
+  CHECKLIST.forEach(sec=>{sec.questions.forEach(q=>{
+    const ans=S.answers[q.id];
+    if(ans!=='fail'&&ans!=='partial')return;
+    const isCCP=q.tags.includes('ccp');
+    const ca=S.corrective[q.id]||'';
+    const tags=q.tags.map(mkTag).join(' ');
+    const item=document.createElement('div');
+    item.className='finding-item '+(isCCP?'critical':'major');
+    const dc=isCCP?'critical':'major';
+    item.innerHTML=`<div class="finding-dot ${dc}"></div><div>
+      <div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">${tags}</div>
+      <div class="finding-text">${q.text}</div>
+      <div style="font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:4px">${q.ref}</div>
+      ${ca?`<div class="finding-ca">→ КД: ${ca}</div>`:'<div class="finding-ca" style="color:var(--red)">⚠ Корректирующее действие не указано</div>'}
+    </div>`;
+    if(isCCP){critL.appendChild(item);hasCrit=true;if(ans==='fail')failItems.push({text:q.text,tags:q.tags,ref:q.ref,ca});}
+    else{majL.appendChild(item);hasMaj=true;if(ans==='fail')failItems.push({text:q.text,tags:q.tags,ref:q.ref,ca});}
+    if(ans==='partial')partialItems.push({text:q.text,tags:q.tags,ref:q.ref});
+  })});
+  document.getElementById('rpt-crit-section').style.display=hasCrit?'':'none';
+  document.getElementById('rpt-major-section').style.display=hasMaj?'':'none';
+  showTab('report');
+  const rec={id:Date.now(),date:S.date,objName:S.objName,objType:S.objType,auditor:S.auditor,score,fail,partial,ok,answers:{...S.answers},corrective:{...S.corrective},notes:{...S.notes}};
+  S.history.unshift(rec);if(S.history.length>20)S.history.pop();
+  localStorage.setItem('auditpro_h',JSON.stringify(S.history));
+  await genAI(score,fail,partial,ok,total,na,failItems,partialItems);
+}
+
+async function genAI(score,fail,partial,ok,total,na,failItems,partialItems){
+  const aiEl=document.getElementById('ai-text');
+  aiEl.innerHTML='<span class="ai-loading">Анализирую данные аудита<span class="ai-cursor"></span></span>';
+  const prompt=`Ты — ведущий эксперт по пищевой безопасности с сертификацией ISO 22000:2018 Lead Auditor и HACCP. Составь официальное аудиторское заключение на русском языке.
+
+ДАННЫЕ АУДИТА:
+Объект: ${S.objName} (${TYPENAMES[S.objType]||S.objType})
+Дата: ${S.date} | Аудитор: ${S.auditor}
+Балл соответствия: ${score}% | Всего вопросов: ${total}
+Соответствует: ${ok} | Не соответствует: ${fail} | Частично: ${partial} | Не применимо: ${na}
+
+НЕСООТВЕТСТВИЯ (${failItems.length} шт.):
+${failItems.map((f,i)=>`${i+1}. [${f.tags.join('/')}] ${f.text}\n   Норматив: ${f.ref}\n   Корр. действие: ${f.ca||'НЕ УКАЗАНО — ТРЕБУЕТ НЕМЕДЛЕННОГО ОПРЕДЕЛЕНИЯ'}`).join('\n')}
+
+ЧАСТИЧНЫЕ НЕСООТВЕТСТВИЯ (${partialItems.length} шт.):
+${partialItems.map((f,i)=>`${i+1}. [${f.tags.join('/')}] ${f.text}`).join('\n')}
+
+Составь профессиональное заключение из 4 абзацев (без markdown):
+1. Общая оценка состояния системы безопасности
+2. Анализ выявленных рисков по ISO 22000:2018 и HACCP (биологические/химические/физические)
+3. Приоритетные корректирующие действия с конкретными сроками
+4. Вывод: статус готовности к сертификации / допуску к работе
+
+Стиль: официальный, профессиональный, конкретный. 280–380 слов.`;
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,stream:true,messages:[{role:'user',content:prompt}]})});
+    if(!resp.ok)throw new Error();
+    const reader=resp.body.getReader();const dec=new TextDecoder();let full='';aiEl.textContent='';
+    while(true){const{done,value}=await reader.read();if(done)break;
+      const lines=dec.decode(value).split('\n');
+      for(const line of lines){if(!line.startsWith('data:'))continue;const d=line.slice(5).trim();if(d==='[DONE]')break;
+        try{const p=JSON.parse(d);if(p.type==='content_block_delta'&&p.delta?.text){full+=p.delta.text;aiEl.textContent=full;}}catch{}
+      }
+    }
+    if(!full)throw new Error();
+  }catch(e){aiEl.textContent=localConclusion(score,fail,partial,failItems);}
+}
+
+function localConclusion(score,fail,partial,failItems){
+  const hasCCP=failItems.some(f=>f.tags.includes('ccp'));
+  const hasBio=failItems.some(f=>f.tags.includes('bio'));
+  const hasChem=failItems.some(f=>f.tags.includes('chem'));
+  let t='ЗАКЛЮЧЕНИЕ ПО РЕЗУЛЬТАТАМ АУДИТА\n\n';
+  if(score>=80&&fail===0){
+    t+='1. Система управления пищевой безопасностью функционирует на высоком уровне. Базовые программы-предпосылки (ПРП) реализованы надлежащим образом. Критических несоответствий не выявлено.\n\n';
+    t+='2. Риски пищевой безопасности находятся под контролем. Процедуры мониторинга ККТ соблюдаются, документация актуальна.\n\n';
+    t+='3. Рекомендуется: поддерживать текущий уровень, провести верификацию системы согласно графику, обновить документацию при изменении процессов.\n\n';
+    t+='4. Вывод: объект готов к сертификационному аудиту по ISO 22000:2018.';
+  }else if(score>=60){
+    t+=`1. Система управления пищевой безопасностью частично соответствует требованиям ISO 22000:2018. Выявлено ${fail} несоответствий, ${partial} частичных несоответствий.\n\n`;
+    t+='2. Выявленные риски: '+(hasBio?'биологические опасности требуют пересмотра процедур термической обработки и хранения; ':'')+( hasChem?'химические риски — необходима ревизия применяемых средств и матрицы аллергенов; ':'')+'требуется усиление контроля документирования.\n\n';
+    t+='3. Приоритетные действия (14–30 дней): устранение выявленных несоответствий, внеплановый инструктаж персонала, актуализация журналов мониторинга.\n\n';
+    t+='4. Вывод: условное соответствие. Повторный аудит рекомендован через 30–60 дней после устранения всех несоответствий.';
+  }else{
+    t+=`1. Система управления пищевой безопасностью не соответствует требованиям ISO 22000:2018. Выявлено ${fail} несоответствий, включая критические.\n\n`;
+    t+=(hasCCP?'2. КРИТИЧНО: Нарушения в критических контрольных точках (ККТ) создают непосредственный риск для безопасности продукции. Реализация продукции должна быть приостановлена до устранения нарушений.\n\n':'2. Выявленные нарушения охватывают базовые программы-предпосылки и оперативные программы, что свидетельствует о системных проблемах в управлении безопасностью.\n\n');
+    t+='3. Немедленные действия (24–72 ч): изоляция продукции периода нарушений, внеплановое обучение персонала, физическое устранение нарушений. В течение 7 дней: разработка плана корректирующих действий с конкретными сроками.\n\n';
+    t+='4. Вывод: объект не готов к работе и сертификации. Обязательный повторный аудит после устранения всех критических нарушений.';
+  }
+  return t;
+}
+
+function renderHistory(){
+  const el=document.getElementById('history-list');
+  if(!S.history.length){el.innerHTML='<div class="history-empty">История аудитов пуста.<br>Проведите первый аудит.</div>';return}
+  el.innerHTML='';const g=document.createElement('div');g.className='history-grid';
+  S.history.forEach(r=>{
+    const c=document.createElement('div');c.className='history-card';
+    const sc=r.score>=80?'badge-green':r.score>=60?'badge-amber':'badge-red';
+    c.innerHTML=`<div class="history-card-left"><h4>${r.objName}</h4><p>${r.date} · ${TYPENAMES[r.objType]||r.objType} · ${r.auditor}</p></div>
+      <div class="history-card-right"><span class="badge ${sc}">${r.score}%</span><span style="font-family:var(--mono);font-size:12px;color:var(--text3)">${r.fail}✗ ${r.partial}~ ${r.ok}✓</span></div>`;
+    g.appendChild(c);
+  });
+  el.appendChild(g);
+}
+
+function exportJSON(){
+  const d={meta:{objName:S.objName,objType:S.objType,auditor:S.auditor,date:S.date,exportedAt:new Date().toISOString()},answers:S.answers,corrective:S.corrective,notes:S.notes};
+  const b=new Blob([JSON.stringify(d,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`audit_${S.objName.replace(/\s+/g,'_')}_${S.date}.json`;a.click();
+}
+function newAudit(){document.getElementById('tab-audit').style.display='none';document.getElementById('tab-report').style.display='none';document.getElementById('topbar-status').style.display='none';showTab('home')}
+
+document.getElementById('audit-date').value=new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
